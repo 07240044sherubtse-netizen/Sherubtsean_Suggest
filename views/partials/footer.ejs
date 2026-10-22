@@ -1,0 +1,37 @@
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <p class="footer-brand">Sherubtsean Suggest</p>
+        <p>A campus suggestion platform for students and tutors at Sherubtse College, Bhutan. Your Voice. Our Campus.</p>
+      </div>
+      <div>
+        <p class="footer-heading">Explore</p>
+        <a href="/">Home</a>
+        <a href="/suggestions">Suggestions</a>
+        <% if (currentUser) { %>
+          <a href="/dashboard">Dashboard</a>
+          <% if (isStaffUser) { %>
+            <a href="/admin">Admin</a>
+          <% } %>
+          <% if (isSuperAdminUser) { %>
+            <a href="/super-admin">Super Admin</a>
+          <% } %>
+        <% } else { %>
+          <a href="/auth">Login</a>
+          <a href="/auth?tab=register">Register</a>
+        <% } %>
+      </div>
+      <div>
+        <p class="footer-heading">Policies</p>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; <%= new Date().getFullYear() %> Sherubtsean Suggest · Sherubtse College</p>
+    </div>
+  </footer>
+  <script src="/js/main.js"></script>
+</body>
+</html>

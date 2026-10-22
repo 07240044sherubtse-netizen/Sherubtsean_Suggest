@@ -1,0 +1,40 @@
+{
+  "name": "sherubtsean-suggest",
+  "version": "1.0.0",
+  "description": "Campus suggestion and feedback platform for Sherubtse College, Bhutan",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "db:setup": "node database/setup.js",
+    "db:seed": "node database/seed.js",
+    "db:admin": "node database/create-admin.js",
+    "db:super-admin": "node database/create-super-admin.js"
+  },
+  "keywords": [
+    "sherubtse",
+    "suggestions",
+    "campus"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "connect-flash": "^0.1.1",
+    "connect-pg-simple": "^10.0.0",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.0.0",
+    "nodemailer": "^10.1.2",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

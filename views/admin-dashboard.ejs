@@ -1,0 +1,223 @@
+ <%- include('partials/header') %>
+
+<section class="section">
+  <div class="container">
+    <div class="staff-banner staff-banner-admin">
+      <p class="eyebrow">Campus Administrator</p>
+      <h1>Admin dashboard</h1>
+      <p class="section-lead">Update suggestion progress, moderate campus ideas, and review student and tutor accounts. Role changes and categories are managed by a super administrator.</p>
+    </div>
+
+    <nav class="tabs">
+      <a class="<%= tab === 'overview' ? 'active' : '' %>" href="/admin?tab=overview">Overview</a>
+      <a class="<%= tab === 'suggestions' ? 'active' : '' %>" href="/admin?tab=suggestions">Suggestions</a>
+      <a class="<%= tab === 'users' ? 'active' : '' %>" href="/admin?tab=users">Users</a>
+    </nav>
+
+    <% if (tab === 'overview') { %>
+      <div class="stats-grid light-stats">
+        <div><strong><%= stats.users %></strong><span>Users</span></div>
+        <div><strong><%= stats.suggestions %></strong><span>Suggestions</span></div>
+        <div><strong><%= stats.open %></strong><span>Open</span></div>
+        <div><strong><%= stats.inProgress %></strong><span>In Progress</span></div>
+        <div><strong><%= stats.resolved %></strong><span>Resolved</span></div>
+        <div><strong><%= stats.comments %></strong><span>Comments</span></div>
+      </div>
+
+      <h2>Recent activity</h2>
+      <% if (!recent.length) { %>
+        <p>No suggestions yet.</p>
+      <% } else { %>
+        <div class="card-grid">
+          <% recent.forEach((suggestion) => { %>
+            <%- include('partials/suggestion-card', { suggestion }) %>
+          <% }) %>
+        </div>
+      <% } %>
+    <% } %>
+
+    <% if (tab === 'suggestions') { %>
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h2>Download feedback</h2>
+        <p>Export campus suggestions and feedback into a file for reporting and record keeping.</p>
+
+        <div class="button-group" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+          <a class="btn btn-primary" href="/admin/feedback/export/xlsx">Download Excel (.xlsx)</a>
+          <a class="btn btn-ghost" href="/admin/feedback/export/csv">Download CSV (.csv)</a>
+          <a class="btn btn-ghost" href="/admin/feedback/export/pdf">Download PDF (.pdf)</a>
+          <a class="btn btn-ghost" href="/admin/feedback/export/json">Download JSON (.json)</a>
+        </div>
+
+        <p class="help">These downloads are intended for authorized administrators. Please handle feedback records responsibly.</p>
+      </div>
+
+      <form class="filter-bar" method="get" action="/admin">
+        <input type="hidden" name="tab" value="suggestions">
+
+        <label>
+          Search
+          <input type="search" name="q" value="<%= filters.q %>" maxlength="120">
+        </label>
+
+        <label>
+          Category
+          <select name="category">
+            <option value="">All</option>
+            <% categories.forEach((category) => { %>
+              <option value="<%= category.id %>" <%= filters.category === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+            <% }) %>
+          </select>
+        </label>
+
+        <label>
+          Status
+          <select name="status">
+            <option value="">All</option>
+            <option value="Open" <%= filters.status === 'Open' ? 'selected' : '' %>>Open</option>
+            <option value="In Progress" <%= filters.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+            <option value="Resolved" <%= filters.status === 'Resolved' ? 'selected' : '' %>>Resolved</option>
+          </select>
+        </label>
+
+        <button class="btn btn-primary" type="submit">Filter</button>
+      </form>
+
+      <% if (!suggestions.length) { %>
+        <div class="empty-state">
+          <p>No suggestions found.</p>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% suggestions.forEach((item) => { %>
+                <tr>
+                  <td>
+                    <a href="/suggestions/<%= item.id %>"><%= item.title %></a>
+                  </td>
+
+                  <td><%= item.author_name %></td>
+
+                  <td>
+                    <form action="/admin/suggestions/<%= item.id %>/status" method="post" class="inline-form">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="from" value="admin">
+
+                      <select name="status" onchange="this.form.submit()">
+                        <option value="Open" <%= item.status === 'Open' ? 'selected' : '' %>>Open</option>
+                        <option value="In Progress" <%= item.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+                        <option value="Resolved" <%= item.status === 'Resolved' ? 'selected' : '' %>>Resolved</option>
+                      </select>
+                    </form>
+                  </td>
+
+                  <td>
+                    <form action="/suggestions/<%= item.id %>/delete" method="post" data-confirm="Remove this suggestion?">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="from" value="admin">
+                      <button class="btn btn-danger" type="submit">Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <% if (suggestionPages > 1) { %>
+          <nav class="pagination">
+            <% if (filters.page > 1) { %>
+              <a href="/admin?tab=suggestions&q=<%= encodeURIComponent(filters.q) %>&category=<%= filters.category %>&status=<%= encodeURIComponent(filters.status) %>&page=<%= filters.page - 1 %>">Previous</a>
+            <% } %>
+
+            <span>Page <%= filters.page %> of <%= suggestionPages %></span>
+
+            <% if (filters.page < suggestionPages) { %>
+              <a href="/admin?tab=suggestions&q=<%= encodeURIComponent(filters.q) %>&category=<%= filters.category %>&status=<%= encodeURIComponent(filters.status) %>&page=<%= filters.page + 1 %>">Next</a>
+            <% } %>
+          </nav>
+        <% } %>
+      <% } %>
+    <% } %>
+
+    <% if (tab === 'users') { %>
+      <p class="help">You can disable student and tutor accounts. Promoting people to Admin is only available on the Super Admin page.</p>
+
+      <form class="filter-bar" method="get" action="/admin">
+        <input type="hidden" name="tab" value="users">
+
+        <label>
+          Search users
+          <input type="search" name="q" value="<%= filters.q %>" maxlength="120">
+        </label>
+
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% users.forEach((user) => { %>
+              <tr>
+                <td><%= user.name %></td>
+                <td><%= user.email %></td>
+                <td>
+                  <span class="role-badge role-<%= user.role %>"><%= user.role.replace('_', ' ') %></span>
+                </td>
+                <td><%= user.is_active ? 'Active' : 'Disabled' %></td>
+
+                <td>
+                  <% if (user.role === 'student' || user.role === 'tutor') { %>
+                    <form action="/admin/users/<%= user.id %>/toggle-active" method="post" data-confirm="<%= user.is_active ? 'Disable this account?' : 'Reactivate this account?' %>">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn-ghost" type="submit">
+                        <%= user.is_active ? 'Disable' : 'Reactivate' %>
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <span class="muted">Staff account</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if (userPages > 1) { %>
+        <nav class="pagination">
+          <% if (filters.page > 1) { %>
+            <a href="/admin?tab=users&q=<%= encodeURIComponent(filters.q) %>&page=<%= filters.page - 1 %>">Previous</a>
+          <% } %>
+
+          <span>Page <%= filters.page %> of <%= userPages %></span>
+
+          <% if (filters.page < userPages) { %>
+            <a href="/admin?tab=users&q=<%= encodeURIComponent(filters.q) %>&page=<%= filters.page + 1 %>">Next</a>
+          <% } %>
+        </nav>
+      <% } %>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,103 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container detail-layout">
+    <article class="detail-main">
+      <div class="card-meta">
+        <span class="chip"><%= suggestion.category_name %></span>
+        <span class="status status-<%= suggestion.status.toLowerCase().replace(' ', '-') %>"><%= suggestion.status %></span>
+      </div>
+      <h1><%= suggestion.title %></h1>
+      <p class="meta-line">
+        Posted by <%= suggestion.author_name %>
+        on <%= formatDate(suggestion.created_at) %>
+      </p>
+      <div class="prose">
+        <p><%= suggestion.description %></p>
+      </div>
+
+      <div class="action-row">
+        <% if (currentUser) { %>
+          <form action="/suggestions/<%= suggestion.id %>/upvote" method="post" data-upvote-form>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn <%= hasLiked ? 'btn-accent' : 'btn-secondary' %>" data-upvote-button>
+              <span data-upvote-label><%= hasLiked ? 'Upvoted' : 'Upvote' %></span>
+              · <span data-upvote-count><%= suggestion.like_count %></span>
+            </button>
+          </form>
+        <% } else { %>
+          <a class="btn btn-secondary" href="/auth?next=<%= encodeURIComponent('/suggestions/' + suggestion.id) %>">Log in to upvote · <%= suggestion.like_count %></a>
+        <% } %>
+
+        <% if (canManage) { %>
+          <a class="btn btn-ghost" href="/suggestions/<%= suggestion.id %>/edit">Edit</a>
+          <form action="/suggestions/<%= suggestion.id %>/delete" method="post" data-confirm="Delete this suggestion and its comments?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        <% } %>
+      </div>
+    </article>
+
+    <aside class="detail-side">
+      <div class="side-card">
+        <h2>Discussion</h2>
+        <p><%= comments.length %> comment<%= comments.length === 1 ? '' : 's' %></p>
+        <a href="#comments">Jump to comments</a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section section-alt" id="comments">
+  <div class="container narrow">
+    <h2>Comments</h2>
+
+    <% if (currentUser) { %>
+      <form action="/suggestions/<%= suggestion.id %>/comments" method="post" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>
+          Add a comment
+          <textarea name="content" rows="4" required minlength="2" maxlength="1000"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary">Post comment</button>
+      </form>
+    <% } else { %>
+      <p><a href="/auth?next=<%= encodeURIComponent('/suggestions/' + suggestion.id) %>">Log in</a> to join the discussion.</p>
+    <% } %>
+
+    <% if (!comments.length) { %>
+      <div class="empty-state">
+        <p>No comments yet. Start the conversation.</p>
+      </div>
+    <% } else { %>
+      <ul class="comment-list">
+        <% comments.forEach((comment) => { %>
+          <li class="comment">
+            <p class="comment-meta"><strong><%= comment.author_name %></strong> · <%= formatDate(comment.created_at) %></p>
+            <p><%= comment.content %></p>
+            <% if (currentUser && (isStaffUser || Number(currentUser.id) === Number(comment.user_id))) { %>
+              <details>
+                <summary>Edit or delete</summary>
+                <form action="/comments/<%= comment.id %>/edit" method="post" class="form">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <label>
+                    Edit comment
+                    <textarea name="content" rows="3" required minlength="2" maxlength="1000"><%= comment.content %></textarea>
+                  </label>
+                  <button type="submit" class="btn btn-secondary">Save</button>
+                </form>
+                <form action="/comments/<%= comment.id %>/delete" method="post" data-confirm="Delete this comment?">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-danger">Delete comment</button>
+                </form>
+              </details>
+            <% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

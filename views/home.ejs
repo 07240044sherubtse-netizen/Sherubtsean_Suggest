@@ -1,0 +1,167 @@
+
+<%- include('partials/header') %>
+
+<!-- Homepage Hero: Sherubtse Tower background -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Sherubtse College · Bhutan</p>
+
+      <h1>Your Voice. Our Campus.</h1>
+
+      <p class="lead">
+        Share ideas, raise concerns, and help make Sherubtse College better.
+      </p>
+
+      <div class="hero-actions">
+        <% if (currentUser) { %>
+          <a class="btn btn-accent" href="/suggestions/new">
+            Share a Suggestion
+          </a>
+        <% } else { %>
+          <a class="btn btn-accent" href="/auth?next=%2Fsuggestions%2Fnew">
+            Share a Suggestion
+          </a>
+        <% } %>
+
+        <a class="btn btn-secondary" href="/suggestions">
+          Explore Suggestions
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section">
+  <div class="container">
+    <h2>How It Works</h2>
+    <p class="section-lead">
+      Three simple steps from idea to campus action.
+    </p>
+
+    <div class="steps">
+      <article>
+        <span class="step-num">1</span>
+        <h3>Share</h3>
+        <p>Post your suggestion or concern.</p>
+      </article>
+
+      <article>
+        <span class="step-num">2</span>
+        <h3>Support</h3>
+        <p>Get support from fellow students and tutors.</p>
+      </article>
+
+      <article>
+        <span class="step-num">3</span>
+        <h3>Track</h3>
+        <p>Follow the progress of your suggestion.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Browse Categories -->
+<section class="section section-alt">
+  <div class="container">
+    <h2>Browse Categories</h2>
+    <p class="section-lead">
+      Find conversations already happening across campus.
+    </p>
+
+    <div class="category-grid">
+      <% categories.forEach((category) => { %>
+        <a
+          class="category-card"
+          href="/suggestions?category=<%= encodeURIComponent(category.id) %>"
+        >
+          <h3><%= category.name %></h3>
+          <p><%= category.description %></p>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- Latest Suggestions -->
+<section class="section">
+  <div class="container">
+    <h2>Latest Suggestions</h2>
+    <p class="section-lead">
+      Fresh ideas from the Sherubtsean community.
+    </p>
+
+    <% if (!latest.length) { %>
+      <div class="empty-state">
+        <p>
+          No suggestions yet. Be the first to share an idea for campus.
+        </p>
+
+        <a
+          class="btn btn-primary"
+          href="<%= currentUser ? '/suggestions/new' : '/auth?next=%2Fsuggestions%2Fnew' %>"
+        >
+          Share a Suggestion
+        </a>
+      </div>
+    <% } else { %>
+      <div class="card-grid">
+        <% latest.forEach((suggestion) => { %>
+          <%- include('partials/suggestion-card', { suggestion }) %>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<!-- Campus Impact -->
+<section class="section section-navy">
+  <div class="container">
+    <h2>Campus Impact</h2>
+    <p class="section-lead light">
+      A live snapshot of community participation.
+    </p>
+
+    <div class="stats-grid">
+      <div>
+        <strong><%= stats.suggestions %></strong>
+        <span>Total suggestions</span>
+      </div>
+
+      <div>
+        <strong><%= stats.users %></strong>
+        <span>Registered users</span>
+      </div>
+
+      <div>
+        <strong><%= stats.resolved %></strong>
+        <span>Resolved suggestions</span>
+      </div>
+
+      <div>
+        <strong><%= stats.comments %></strong>
+        <span>Total comments</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta">
+  <div class="container cta-inner">
+    <h2>Have an idea that could make campus better?</h2>
+
+    <% if (currentUser) { %>
+      <a class="btn btn-accent" href="/suggestions/new">
+        Share Your Suggestion
+      </a>
+    <% } else { %>
+      <a class="btn btn-accent" href="/auth?next=%2Fsuggestions%2Fnew">
+        Share Your Suggestion
+      </a>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

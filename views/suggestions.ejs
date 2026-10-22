@@ -1,0 +1,76 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container">
+    <div class="page-heading">
+      <div>
+        <h1>Suggestions</h1>
+        <p class="section-lead">Search, filter, and support ideas from across campus.</p>
+      </div>
+      <a class="btn btn-accent" href="<%= currentUser ? '/suggestions/new' : '/auth?next=%2Fsuggestions%2Fnew' %>">Share a Suggestion</a>
+    </div>
+
+    <form class="filter-bar" method="get" action="/suggestions">
+      <label>
+        Search
+        <input type="search" name="q" value="<%= filters.q %>" maxlength="120" placeholder="Search titles and descriptions">
+      </label>
+      <label>
+        Category
+        <select name="category">
+          <option value="">All categories</option>
+          <% categories.forEach((category) => { %>
+            <option value="<%= category.id %>" <%= filters.category === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label>
+        Status
+        <select name="status">
+          <option value="">All statuses</option>
+          <option value="Open" <%= filters.status === 'Open' ? 'selected' : '' %>>Open</option>
+          <option value="In Progress" <%= filters.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+          <option value="Resolved" <%= filters.status === 'Resolved' ? 'selected' : '' %>>Resolved</option>
+        </select>
+      </label>
+      <label>
+        Sort
+        <select name="sort">
+          <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest</option>
+          <option value="upvoted" <%= filters.sort === 'upvoted' ? 'selected' : '' %>>Most upvoted</option>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-ghost" href="/suggestions">Clear filters</a>
+      </div>
+    </form>
+
+    <% if (!suggestions.length) { %>
+      <div class="empty-state">
+        <p>No suggestions match these filters yet.</p>
+        <a class="btn btn-primary" href="/suggestions">View all suggestions</a>
+      </div>
+    <% } else { %>
+      <div class="card-grid">
+        <% suggestions.forEach((suggestion) => { %>
+          <%- include('partials/suggestion-card', { suggestion }) %>
+        <% }) %>
+      </div>
+
+      <% if (pagination.totalPages > 1) { %>
+        <nav class="pagination" aria-label="Pagination">
+          <% if (pagination.page > 1) { %>
+            <a href="?q=<%= encodeURIComponent(filters.q) %>&category=<%= filters.category %>&status=<%= encodeURIComponent(filters.status) %>&sort=<%= filters.sort %>&page=<%= pagination.page - 1 %>">Previous</a>
+          <% } %>
+          <span>Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+          <% if (pagination.page < pagination.totalPages) { %>
+            <a href="?q=<%= encodeURIComponent(filters.q) %>&category=<%= filters.category %>&status=<%= encodeURIComponent(filters.status) %>&sort=<%= filters.sort %>&page=<%= pagination.page + 1 %>">Next</a>
+          <% } %>
+        </nav>
+      <% } %>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

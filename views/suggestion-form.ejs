@@ -1,0 +1,49 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container narrow">
+    <h1><%= suggestion ? 'Edit suggestion' : 'Share a suggestion' %></h1>
+    <p class="section-lead">Be specific, respectful, and focused on how campus can improve.</p>
+
+    <form action="<%= suggestion ? '/suggestions/' + suggestion.id + '/edit' : '/suggestions' %>" method="post" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>
+        Title
+        <input type="text" name="title" required minlength="8" maxlength="160" value="<%= suggestion ? suggestion.title : '' %>">
+      </label>
+      <label>
+        Description
+        <textarea name="description" rows="8" required minlength="20" maxlength="4000"><%= suggestion ? suggestion.description : '' %></textarea>
+      </label>
+      <label>
+        Category
+        <select name="category_id" required>
+          <option value="">Choose a category</option>
+          <% categories.forEach((category) => { %>
+            <option value="<%= category.id %>" <%= suggestion && Number(suggestion.category_id) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" name="is_anonymous" <%= suggestion && suggestion.is_anonymous ? 'checked' : '' %>>
+        Post anonymously (your name stays hidden from other students and tutors)
+      </label>
+      <% if (suggestion && isStaffUser) { %>
+        <label>
+          Status
+          <select name="status">
+            <option value="Open" <%= suggestion.status === 'Open' ? 'selected' : '' %>>Open</option>
+            <option value="In Progress" <%= suggestion.status === 'In Progress' ? 'selected' : '' %>>In Progress</option>
+            <option value="Resolved" <%= suggestion.status === 'Resolved' ? 'selected' : '' %>>Resolved</option>
+          </select>
+        </label>
+      <% } %>
+      <div class="action-row">
+        <button type="submit" class="btn btn-primary"><%= suggestion ? 'Save changes' : 'Publish suggestion' %></button>
+        <a class="btn btn-ghost" href="<%= suggestion ? '/suggestions/' + suggestion.id : '/suggestions' %>">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

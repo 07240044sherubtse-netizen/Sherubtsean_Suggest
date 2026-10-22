@@ -1,0 +1,16 @@
+<article class="suggestion-card">
+  <a class="card-link" href="/suggestions/<%= suggestion.id %>">
+    <div class="card-meta">
+      <span class="chip"><%= suggestion.category_name %></span>
+      <span class="status status-<%= suggestion.status.toLowerCase().replace(' ', '-') %>"><%= suggestion.status %></span>
+    </div>
+    <h3><%= suggestion.title %></h3>
+    <p><%= suggestion.description.length > 140 ? suggestion.description.slice(0, 140) + '…' : suggestion.description %></p>
+  </a>
+  <div class="card-footer">
+    <span><%= suggestion.author_name %></span>
+    <span><%= formatDate(suggestion.created_at) %></span>
+    <span><%= suggestion.like_count %> upvotes</span>
+    <span><%= suggestion.comment_count %> comments</span>
+  </div>
+</article>

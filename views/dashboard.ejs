@@ -1,0 +1,76 @@
+<%- include('partials/header') %>
+
+<section class="section">
+  <div class="container">
+    <div class="page-heading">
+      <div>
+        <h1>Welcome, <%= currentUser.name %></h1>
+        <p class="section-lead">Track the suggestions you have shared with campus.</p>
+      </div>
+      <a class="btn btn-accent" href="/suggestions/new">Create a suggestion</a>
+    </div>
+
+    <div class="stats-grid light-stats">
+      <div>
+        <strong><%= stats.total %></strong>
+        <span>Your suggestions</span>
+      </div>
+      <div>
+        <strong><%= stats.open_count %></strong>
+        <span>Open</span>
+      </div>
+      <div>
+        <strong><%= stats.in_progress_count %></strong>
+        <span>In Progress</span>
+      </div>
+      <div>
+        <strong><%= stats.resolved_count %></strong>
+        <span>Resolved</span>
+      </div>
+    </div>
+
+    <h2>Your recent suggestions</h2>
+    <% if (!recent.length) { %>
+      <div class="empty-state">
+        <p>You have not posted a suggestion yet. Share an idea to get started.</p>
+        <a class="btn btn-primary" href="/suggestions/new">Share a Suggestion</a>
+      </div>
+    <% } else { %>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Upvotes</th>
+              <th>Comments</th>
+              <th>Visibility</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recent.forEach((item) => { %>
+              <tr>
+                <td><a href="/suggestions/<%= item.id %>"><%= item.title %></a></td>
+                <td><span class="status status-<%= item.status.toLowerCase().replace(' ', '-') %>"><%= item.status %></span></td>
+                <td><%= item.like_count %></td>
+                <td><%= item.comment_count %></td>
+                <td><%= item.is_anonymous ? 'Anonymous to others' : 'Public name' %></td>
+                <td class="table-actions">
+                  <a href="/suggestions/<%= item.id %>/edit">Edit</a>
+                  <form action="/suggestions/<%= item.id %>/delete" method="post" data-confirm="Delete this suggestion?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="linkish">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <p><a href="/suggestions">Browse all campus suggestions</a></p>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

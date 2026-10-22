@@ -1,0 +1,262 @@
+
+<%- include('partials/header') %>
+
+<section class="section auth-section">
+  <div class="container narrow">
+    <h1>Welcome</h1>
+
+    <p class="section-lead">
+      Log in to your account or register as a student or tutor.
+    </p>
+
+    <%
+      const currentTab = typeof tab !== 'undefined' && tab === 'register'
+        ? 'register'
+        : 'login';
+
+      const currentMode = typeof mode !== 'undefined' && mode === 'admin'
+        ? 'admin'
+        : 'user';
+
+      const nextUrl = typeof next !== 'undefined' ? next : '';
+      const token = typeof csrfToken !== 'undefined' ? csrfToken : '';
+    %>
+
+    <!-- LOGIN AND REGISTER TABS -->
+    <div class="auth-tabs" role="tablist">
+      <button
+        type="button"
+        class="<%= currentTab === 'login' ? 'active' : '' %>"
+        data-tab-target="login"
+        role="tab"
+        aria-selected="<%= currentTab === 'login' %>">
+        Login
+      </button>
+
+      <button
+        type="button"
+        class="<%= currentTab === 'register' ? 'active' : '' %>"
+        data-tab-target="register"
+        role="tab"
+        aria-selected="<%= currentTab === 'register' %>">
+        Register
+      </button>
+    </div>
+
+    <!-- LOGIN PANEL -->
+    <div
+      class="panel <%= currentTab === 'login' ? 'is-visible' : '' %>"
+      data-tab-panel="login"
+      role="tabpanel">
+
+      <h2 class="auth-panel-title">
+        <%= currentMode === 'admin' ? 'Administrator Login' : 'User Login' %>
+      </h2>
+
+      <!-- USER / ADMIN OPTIONS -->
+      <div class="login-options">
+        <a
+          href="/auth?tab=login&mode=user"
+          class="login-option <%= currentMode === 'user' ? 'active' : '' %>"
+          <%= currentMode === 'user' ? 'aria-current="page"' : '' %>>
+          <span aria-hidden="true">👤</span>
+          Login as User
+        </a>
+
+        <a
+          href="/auth?tab=login&mode=admin"
+          class="login-option <%= currentMode === 'admin' ? 'active' : '' %>"
+          <%= currentMode === 'admin' ? 'aria-current="page"' : '' %>>
+          <span aria-hidden="true">🔐</span>
+          Login as Admin
+        </a>
+      </div>
+
+      <p class="login-description">
+        <%= currentMode === 'admin'
+          ? 'Sign in using an existing administrator account.'
+          : 'Sign in using your student or tutor account.' %>
+      </p>
+
+      <form action="/auth/login" method="post" class="form">
+        <input
+          type="hidden"
+          name="_csrf"
+          value="<%= token %>">
+
+        <input
+          type="hidden"
+          name="next"
+          value="<%= nextUrl %>">
+
+        <input
+          type="hidden"
+          name="mode"
+          value="<%= currentMode %>">
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            required
+            maxlength="255"
+            autocomplete="username"
+            placeholder="Enter your email">
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            name="password"
+            required
+            maxlength="72"
+            autocomplete="current-password"
+            placeholder="Enter your password">
+        </label>
+
+        <!-- FORGOT PASSWORD LINK -->
+        <div class="forgot-password-link">
+          <a href="/auth/forgot-password">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary login-submit">
+          <%= currentMode === 'admin' ? 'Log in as Admin' : 'Log in as User' %>
+        </button>
+      </form>
+    </div>
+
+    <!-- REGISTRATION PANEL -->
+    <div
+      class="panel <%= currentTab === 'register' ? 'is-visible' : '' %>"
+      data-tab-panel="register"
+      role="tabpanel">
+
+      <h2 class="auth-panel-title">Create an Account</h2>
+
+      <p class="login-description">
+        Register as a student or tutor to get started.
+      </p>
+
+      <form action="/auth/register" method="post" class="form">
+        <input
+          type="hidden"
+          name="_csrf"
+          value="<%= token %>">
+
+        <label>
+          Full name
+          <input
+            type="text"
+            name="name"
+            required
+            minlength="2"
+            maxlength="120"
+            autocomplete="name"
+            placeholder="Enter your full name">
+        </label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            required
+            maxlength="255"
+            autocomplete="email"
+            placeholder="Enter your email">
+        </label>
+
+        <label>
+          Role
+          <select name="role" required>
+            <option value="student">Student</option>
+            <option value="tutor">Tutor</option>
+          </select>
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            name="password"
+            required
+            minlength="8"
+            maxlength="72"
+            autocomplete="new-password"
+            placeholder="At least 8 characters">
+        </label>
+
+        <label>
+          Confirm password
+          <input
+            type="password"
+            name="confirmPassword"
+            required
+            minlength="8"
+            maxlength="72"
+            autocomplete="new-password"
+            placeholder="Enter your password again">
+        </label>
+
+        <p class="help">
+          Use at least 8 characters with a letter and a number.
+          Administrator accounts must be created separately.
+        </p>
+
+        <button type="submit" class="btn btn-primary login-submit">
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .forgot-password-link {
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 16px;
+  }
+
+  .forgot-password-link a {
+    color: #2563eb;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .forgot-password-link a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('[data-tab-target]');
+    const tabPanels = document.querySelectorAll('[data-tab-panel]');
+
+    tabButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        const selectedTab = button.dataset.tabTarget;
+
+        tabButtons.forEach(function (item) {
+          item.classList.toggle('active', item === button);
+          item.setAttribute(
+            'aria-selected',
+            item === button ? 'true' : 'false'
+          );
+        });
+
+        tabPanels.forEach(function (panel) {
+          panel.classList.toggle(
+            'is-visible',
+            panel.dataset.tabPanel === selectedTab
+          );
+        });
+      });
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>
