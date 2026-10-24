@@ -2,45 +2,6 @@
 const nodemailer = require('nodemailer');
 
 function createTransporter() {
-  const apiKey = String(process.env.BREVO_API_KEY || '').trim();
-  const sender = String(process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER || '').trim();
-  if (apiKey) {
-    if (!sender) throw new Error('Set BREVO_SENDER_EMAIL to your verified Brevo sender.');
-    async function request(endpoint, options = {}) {
-      let response;
-      try {
-        response = await fetch('https://api.brevo.com/v3/' + endpoint, {
-          ...options,
-          headers: { 'api-key': apiKey, 'Content-Type': 'application/json', accept: 'application/json' },
-          signal: AbortSignal.timeout(20000)
-        });
-      } catch {
-        throw new Error('Email API connection failed or timed out.');
-      }
-      if (!response.ok) {
-        // Do not log provider response bodies, API keys, or email content.
-        throw new Error('Email API rejected the request (HTTP ' + response.status +
-          '). Check the API key, verified sender, transactional access, and sending quota.');
-      }
-      return response;
-    }
-    return {
-      verify: () => request('account'),
-      sendMail: (mail) => request('smtp/email', {
-        method: 'POST',
-        body: JSON.stringify({
-          sender: { name: 'Sherubtsean Suggest', email: sender },
-          to: [{ email: mail.to }],
-          subject: mail.subject,
-          textContent: mail.text,
-          htmlContent: mail.html
-        })
-      })
-    };
-  }
-  if (process.env.RENDER === 'true') {
-    throw new Error('Configure BREVO_API_KEY and BREVO_SENDER_EMAIL on Render for HTTPS email delivery.');
-  }
   const user = String(process.env.EMAIL_USER || '').trim();
   // Google displays App Passwords in groups separated by spaces.
   const pass = String(process.env.EMAIL_APP_PASSWORD || '').replace(/\s/g, '');
