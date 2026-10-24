@@ -14,11 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Upgrade databases created before email verification was introduced.
--- Preserve existing accounts; new public registrations explicitly pass FALSE.
-ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT TRUE;
-ALTER TABLE users ALTER COLUMN is_verified SET DEFAULT FALSE;
-
 CREATE TABLE IF NOT EXISTS email_verification_codes (
     id BIGSERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

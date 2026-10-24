@@ -90,13 +90,8 @@ async function register(req, res, next) {
       return res.redirect('/auth?tab=register');
     }
 
-    // Keep the same resend cooldown when registration is submitted again.
+    // If an unverified account exists, resend its code.
     if (existing && !existing.is_verified) {
-      const record = await User.getVerificationCode(existing.id);
-      if (record && Date.now() - new Date(record.last_sent_at).getTime() < 60 * 1000) {
-        req.flash('error', 'Please wait one minute before requesting another code.');
-        return res.redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
-      }
       try {
         await issueVerificationCode(existing);
       } catch (emailError) {
@@ -141,7 +136,7 @@ async function register(req, res, next) {
         'Your account was created, but we could not send the verification email. Please try again shortly.'
       );
 
-      return res.redirect(`/auth/verify?email=${encodeURIComponent(email)}`);
+      return res.redirect('/auth?tab=register');
     }
 
     req.flash(
@@ -445,8 +440,8 @@ async function resetPassword(req, res, next) {
     const password = String(req.body.password || '');
     const confirmPassword = String(req.body.confirmPassword || '');
 
-    if (password.length < 8 || password.length > 72 || Buffer.byteLength(password, 'utf8') > 72) {
-      req.flash('error', 'Your new password must be between 8 and 72 characters (at most 72 UTF-8 bytes).');
+    if (password.length < 8 || password.length > 128) {
+      req.flash('error', 'Your new password must be between 8 and 128 characters.');
       return res.redirect('/auth/reset-password');
     }
 
@@ -559,10 +554,7 @@ async function login(req, res, next) {
 
     const destination = nextUrl || staffHome(user);
 
-    return req.session.save((err) => {
-      if (err) return next(err);
-      return res.redirect(destination);
-    });
+    return req.session.save(() => res.redirect(destination));
   } catch (err) {
     next(err);
   }

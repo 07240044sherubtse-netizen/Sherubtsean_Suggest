@@ -7,18 +7,12 @@ function handleValidation(req, res, next) {
   }
 
   req.flash('error', errors.array().map((item) => item.msg));
-  if (req.originalUrl.split('?')[0] === '/auth/register') {
-    return res.redirect('/auth?tab=register');
-  }
-  if (req.originalUrl.split('?')[0] === '/auth/login') {
-    return res.redirect(`/auth?tab=login&mode=${req.body.mode === 'admin' ? 'admin' : 'user'}`);
-  }
-  return res.redirect(req.originalUrl || '/');
+  return res.redirect(req.get('Referrer') || req.originalUrl || '/');
 }
 
 const registerRules = [
   body('name').trim().isLength({ min: 2, max: 120 }).withMessage('Please enter your full name (2–120 characters).'),
-  body('email').trim().isEmail().isLength({ max: 255 }).withMessage('Please enter a valid email address.').customSanitizer((value) => String(value).toLowerCase()),
+  body('email').trim().isEmail().isLength({ max: 255 }).withMessage('Please enter a valid email address.').normalizeEmail(),
   body('password')
     .isLength({ min: 8, max: 72 })
     .withMessage('Password must be 8–72 characters.')
@@ -36,7 +30,7 @@ const registerRules = [
 ];
 
 const loginRules = [
-  body('email').trim().isEmail().withMessage('Please enter a valid email address.').customSanitizer((value) => String(value).toLowerCase()),
+  body('email').trim().isEmail().withMessage('Please enter a valid email address.').normalizeEmail(),
   body('password').notEmpty().withMessage('Please enter your password.')
 ];
 
@@ -69,7 +63,7 @@ const staffRoleRules = [
 
 const createAdminRules = [
   body('name').trim().isLength({ min: 2, max: 120 }).withMessage('Please enter a full name (2–120 characters).'),
-  body('email').trim().isEmail().isLength({ max: 255 }).withMessage('Please enter a valid email address.').customSanitizer((value) => String(value).toLowerCase()),
+  body('email').trim().isEmail().isLength({ max: 255 }).withMessage('Please enter a valid email address.').normalizeEmail(),
   body('password')
     .isLength({ min: 8, max: 72 })
     .withMessage('Password must be 8–72 characters.')
