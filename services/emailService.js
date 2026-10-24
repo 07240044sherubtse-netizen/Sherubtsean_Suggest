@@ -1,91 +1,85 @@
+async function sendCode(email, name, code, type) {
+  const url = String(
+    process.env.GOOGLE_SCRIPT_URL || ''
+  ).trim();
 
-const nodemailer = require('nodemailer');
+  const secret = String(
+    process.env.EMAIL_API_SECRET || ''
+  ).trim();
 
-function createTransporter() {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-    throw new Error('Email credentials are missing from .env');
+  if (
+    !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)
+  ) {
+    throw new Error(
+      'Set GOOGLE_SCRIPT_URL to the deployed Apps Script /exec URL.'
+    );
   }
 
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD
-    }
-  });
+  if (secret.length < 32) {
+    throw new Error(
+      'Set EMAIL_API_SECRET to the same secret used in Apps Script.'
+    );
+  }
+
+  let response;
+
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        secret,
+        email,
+        name,
+        code: String(code),
+        type
+      }),
+
+      redirect: 'follow',
+      signal: AbortSignal.timeout(30000)
+    });
+  } catch (err) {
+    throw new Error(
+      'Google email request failed or timed out. Please try again.'
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      'Google email endpoint returned HTTP ' + response.status
+    );
+  }
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch (err) {
+    throw new Error(
+      'Google returned a non-JSON response. Check web app access and the /exec URL.'
+    );
+  }
+
+  if (!result || result.ok !== true) {
+    throw new Error(
+      (result && result.error) ||
+      'Google did not confirm email delivery.'
+    );
+  }
 }
 
-// Escape HTML characters to prevent HTML injection.
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[char]);
-}
-
-// Send registration verification code.
+// Send the registration verification code.
 async function sendVerificationCode(email, name, code) {
-  const transporter = createTransporter();
-  const safeName = escapeHtml(name);
-
-  await transporter.sendMail({
-    from: `"Sherubtsean Suggest" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: 'Verify your Sherubtsean Suggest email',
-    text: `Hello ${name},
-
-Your verification code is: ${code}
-
-This code expires in 10 minutes.
-
-Sherubtsean Suggest`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px">
-        <h2>Verify your email</h2>
-        <p>Hello ${safeName},</p>
-        <p>Your six-digit verification code is:</p>
-        <p style="font-size:32px;font-weight:bold;letter-spacing:8px">
-          ${code}
-        </p>
-        <p>This code expires in 10 minutes.</p>
-        <p>Sherubtsean Suggest</p>
-      </div>
-    `
-  });
+  await sendCode(email, name, code, 'verification');
 }
 
-// Send password-reset verification code.
+// Send the password-reset code.
 async function sendPasswordResetCode(email, name, code) {
-  const transporter = createTransporter();
-  const safeName = escapeHtml(name);
-
-  await transporter.sendMail({
-    from: `"Sherubtsean Suggest" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: 'Reset your Sherubtsean Suggest password',
-    text: `Hello ${name},
-
-Your six-digit password-reset code is: ${code}
-
-This code expires in 10 minutes.
-
-Sherubtsean Suggest`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px">
-        <h2>Reset your password</h2>
-        <p>Hello ${safeName},</p>
-        <p>Your six-digit password-reset code is:</p>
-        <p style="font-size:32px;font-weight:bold;letter-spacing:8px">
-          ${code}
-        </p>
-        <p>This code expires in 10 minutes.</p>
-        <p>Sherubtsean Suggest</p>
-      </div>
-    `
-  });
+  await sendCode(email, name, code, 'password-reset');
 }
 
 module.exports = {
