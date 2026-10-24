@@ -2,17 +2,24 @@
 const nodemailer = require('nodemailer');
 
 function createTransporter() {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-    throw new Error('Email credentials are missing from .env');
+  const user = String(process.env.EMAIL_USER || '').trim();
+  // Google displays App Passwords in groups separated by spaces.
+  const pass = String(process.env.EMAIL_APP_PASSWORD || '').replace(/\s/g, '');
+  if (!user || !pass) {
+    throw new Error('Set EMAIL_USER and EMAIL_APP_PASSWORD in .env. Use a Gmail App Password, not your Google account password.');
   }
 
   return nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD
-    }
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000
   });
+}
+
+async function verifyEmailConfiguration() {
+  await createTransporter().verify();
 }
 
 // Escape HTML characters to prevent HTML injection.
@@ -32,7 +39,7 @@ async function sendVerificationCode(email, name, code) {
   const safeName = escapeHtml(name);
 
   await transporter.sendMail({
-    from: `"Sherubtsean Suggest" <${process.env.EMAIL_USER}>`,
+    from: `"Sherubtsean Suggest" <${String(process.env.EMAIL_USER || '').trim()}>`,
     to: email,
     subject: 'Verify your Sherubtsean Suggest email',
     text: `Hello ${name},
@@ -63,7 +70,7 @@ async function sendPasswordResetCode(email, name, code) {
   const safeName = escapeHtml(name);
 
   await transporter.sendMail({
-    from: `"Sherubtsean Suggest" <${process.env.EMAIL_USER}>`,
+    from: `"Sherubtsean Suggest" <${String(process.env.EMAIL_USER || '').trim()}>`,
     to: email,
     subject: 'Reset your Sherubtsean Suggest password',
     text: `Hello ${name},
@@ -89,6 +96,7 @@ Sherubtsean Suggest`,
 }
 
 module.exports = {
+  verifyEmailConfiguration,
   sendVerificationCode,
   sendPasswordResetCode
 };
